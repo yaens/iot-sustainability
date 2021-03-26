@@ -1,0 +1,24 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "IotHubs_iothub_hacktheclimate_dev_connectionString": {
+            "value": null
+        },
+        "IotHubs_iothub_hacktheclimate_dev_containerName": {
+            "value": null
+        },
+        "vulnerabilityAssessments_Default_storageContainerPath": {
+            "value": null
+        },
+        "IotHubs_iothub_hacktheclimate_dev_name": {
+            "value": null
+        },
+        "servers_sqldbserver_hacktheclimate_dev_name": {
+            "value": null
+        },
+        "streamingjobs_sajob_hacktheclimate_dev_name": {
+            "value": null
+        }
+    }
+}

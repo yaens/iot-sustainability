@@ -1,0 +1,599 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "IotHubs_iothub_hacktheclimate_dev_connectionString": {
+            "type": "SecureString"
+        },
+        "IotHubs_iothub_hacktheclimate_dev_containerName": {
+            "type": "SecureString"
+        },
+        "vulnerabilityAssessments_Default_storageContainerPath": {
+            "type": "SecureString"
+        },
+        "IotHubs_iothub_hacktheclimate_dev_name": {
+            "defaultValue": "iothub-hacktheclimate-dev",
+            "type": "String"
+        },
+        "servers_sqldbserver_hacktheclimate_dev_name": {
+            "defaultValue": "sqldbserver-hacktheclimate-dev",
+            "type": "String"
+        },
+        "streamingjobs_sajob_hacktheclimate_dev_name": {
+            "defaultValue": "sajob-hacktheclimate-dev",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Devices/IotHubs",
+            "apiVersion": "2020-08-31",
+            "name": "[parameters('IotHubs_iothub_hacktheclimate_dev_name')]",
+            "location": "westeurope",
+            "sku": {
+                "name": "S1",
+                "tier": "Standard",
+                "capacity": 1
+            },
+            "identity": {
+                "type": "None"
+            },
+            "properties": {
+                "ipFilterRules": [],
+                "eventHubEndpoints": {
+                    "events": {
+                        "retentionTimeInDays": 1,
+                        "partitionCount": 4
+                    }
+                },
+                "routing": {
+                    "endpoints": {
+                        "serviceBusQueues": [],
+                        "serviceBusTopics": [],
+                        "eventHubs": [],
+                        "storageContainers": []
+                    },
+                    "routes": [],
+                    "fallbackRoute": {
+                        "name": "$fallback",
+                        "source": "DeviceMessages",
+                        "condition": "true",
+                        "endpointNames": [
+                            "events"
+                        ],
+                        "isEnabled": true
+                    }
+                },
+                "storageEndpoints": {
+                    "$default": {
+                        "sasTtlAsIso8601": "PT1H",
+                        "connectionString": "[parameters('IotHubs_iothub_hacktheclimate_dev_connectionString')]",
+                        "containerName": "[parameters('IotHubs_iothub_hacktheclimate_dev_containerName')]"
+                    }
+                },
+                "messagingEndpoints": {
+                    "fileNotifications": {
+                        "lockDurationAsIso8601": "PT1M",
+                        "ttlAsIso8601": "PT1H",
+                        "maxDeliveryCount": 10
+                    }
+                },
+                "enableFileUploadNotifications": false,
+                "cloudToDevice": {
+                    "maxDeliveryCount": 10,
+                    "defaultTtlAsIso8601": "PT1H",
+                    "feedback": {
+                        "lockDurationAsIso8601": "PT1M",
+                        "ttlAsIso8601": "PT1H",
+                        "maxDeliveryCount": 10
+                    }
+                },
+                "features": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[parameters('servers_sqldbserver_hacktheclimate_dev_name')]",
+            "location": "westeurope",
+            "kind": "v12.0",
+            "properties": {
+                "administratorLogin": "db_admin",
+                "version": "12.0",
+                "publicNetworkAccess": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.StreamAnalytics/streamingjobs",
+            "apiVersion": "2017-04-01-preview",
+            "name": "[parameters('streamingjobs_sajob_hacktheclimate_dev_name')]",
+            "location": "North Europe",
+            "properties": {
+                "sku": {
+                    "name": "Standard"
+                },
+                "eventsOutOfOrderPolicy": "Adjust",
+                "outputErrorPolicy": "Stop",
+                "eventsOutOfOrderMaxDelayInSeconds": 0,
+                "eventsLateArrivalMaxDelayInSeconds": 5,
+                "dataLocale": "en-US",
+                "compatibilityLevel": "1.2",
+                "contentStoragePolicy": "SystemAccount",
+                "jobType": "Cloud"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/CreateIndex')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/DbParameterization')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/DefragmentIndex')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/DropIndex')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/ForceLastGoodPlan')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/auditingPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/Default')]",
+            "location": "West Europe",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "auditingState": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/auditingSettings",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev')]",
+            "location": "westeurope",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "sku": {
+                "name": "Standard",
+                "tier": "Standard",
+                "capacity": 10
+            },
+            "kind": "v12.0,user",
+            "properties": {
+                "collation": "SQL_Latin1_General_CP1_CI_AS",
+                "maxSizeBytes": 53687091200,
+                "catalogCollation": "SQL_Latin1_General_CP1_CI_AS",
+                "zoneRedundant": false,
+                "readScale": "Disabled",
+                "storageAccountType": "GRS",
+                "maintenanceConfigurationId": "/subscriptions/d35b16a1-dea4-49e8-832f-d228dff09ddc/providers/Microsoft.Maintenance/publicMaintenanceConfigurations/SQL_Default"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/master/Default')]",
+            "location": "West Europe",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "auditingState": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingSettings",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/master/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/extendedAuditingSettings",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/master/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/geoBackupPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/master/Default')]",
+            "location": "West Europe",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/securityAlertPolicies",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/master/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/transparentDataEncryption",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/master/current')]",
+            "location": "West Europe",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "status": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/vulnerabilityAssessments",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/master/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "recurringScans": {
+                    "isEnabled": false,
+                    "emailSubscriptionAdmins": true
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/devOpsAuditingSettings",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/encryptionProtector",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/current')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "kind": "servicemanaged",
+            "properties": {
+                "serverKeyName": "ServiceManaged",
+                "serverKeyType": "ServiceManaged",
+                "autoRotationEnabled": false
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/extendedAuditingSettings",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "auditActionsAndGroups": [],
+                "isStorageSecondaryKeyInUse": false,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/firewallRules",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/ClientIPAddress_2021-03-24_06:11:12')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "startIpAddress": "51.107.69.83",
+                "endIpAddress": "51.107.69.83"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/keys",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/ServiceManaged')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "kind": "servicemanaged",
+            "properties": {
+                "serverKeyType": "ServiceManaged"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/securityAlertPolicies",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/vulnerabilityAssessments",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "recurringScans": {
+                    "isEnabled": false,
+                    "emailSubscriptionAdmins": true
+                },
+                "storageContainerPath": "[parameters('vulnerabilityAssessments_Default_storageContainerPath')]"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/CreateIndex')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/DbParameterization')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/DefragmentIndex')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/DropIndex')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/advisors",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/ForceLastGoodPlan')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "autoExecuteValue": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/Default')]",
+            "location": "West Europe",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "auditingState": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/auditingSettings",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/backupLongTermRetentionPolicies",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "weeklyRetention": "PT0S",
+                "monthlyRetention": "PT0S",
+                "yearlyRetention": "PT0S",
+                "weekOfYear": 0
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/backupShortTermRetentionPolicies",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 7
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/extendedAuditingSettings",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "retentionDays": 0,
+                "isAzureMonitorTargetEnabled": false,
+                "state": "Disabled",
+                "storageAccountSubscriptionId": "00000000-0000-0000-0000-000000000000"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/geoBackupPolicies",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/Default')]",
+            "location": "West Europe",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "state": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/securityAlertPolicies",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/transparentDataEncryption",
+            "apiVersion": "2014-04-01",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/current')]",
+            "location": "West Europe",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "status": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases/vulnerabilityAssessments",
+            "apiVersion": "2020-08-01-preview",
+            "name": "[concat(parameters('servers_sqldbserver_hacktheclimate_dev_name'), '/sqldb-hacktheclimate-dev/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers/databases', parameters('servers_sqldbserver_hacktheclimate_dev_name'), 'sqldb-hacktheclimate-dev')]",
+                "[resourceId('Microsoft.Sql/servers', parameters('servers_sqldbserver_hacktheclimate_dev_name'))]"
+            ],
+            "properties": {
+                "recurringScans": {
+                    "isEnabled": false,
+                    "emailSubscriptionAdmins": true
+                }
+            }
+        }
+    ]
+}
