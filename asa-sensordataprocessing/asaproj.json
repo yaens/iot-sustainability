@@ -1,0 +1,10 @@
+{
+    "name": "asa-sensordataprocessing",
+    "startFile": "asa-sensordataprocessing.asaql",
+    "configurations": [
+        {
+            "filePath": "JobConfig.json",
+            "subType": "JobConfig"
+        }
+    ]
+}
